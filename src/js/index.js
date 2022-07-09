@@ -1,12 +1,11 @@
 import {
   AmbientLight,
+  AnimationMixer,
   AxesHelper,
   BoxGeometry,
+  Clock,
   Color,
-  EdgesGeometry,
   GridHelper,
-  LineBasicMaterial,
-  LineSegments,
   Mesh,
   MeshStandardMaterial,
   PCFSoftShadowMap,
@@ -67,6 +66,8 @@ function addGround() {
 }
 addGround();
 
+let mixer;
+let modelReady = false;
 // Load 3d model
 loader.load(
   truck,
@@ -76,7 +77,10 @@ loader.load(
       c.castShadow = true;
     });
     fbx.position.y += 0.4;
+    mixer = new AnimationMixer(fbx);
+    mixer.clipAction(fbx.animations[0]).play();
     scene.add(fbx);
+    modelReady = true;
   },
   function (event) {
     console.log((event.loaded / event.total) * 100 + "% loaded");
@@ -124,10 +128,14 @@ function onWindowResize() {
   render();
 }
 
+const clock = new Clock();
+
 function animate() {
   requestAnimationFrame(animate);
 
   controls.update();
+
+  if (modelReady) mixer.update(clock.getDelta());
 
   render();
 }
