@@ -119,6 +119,8 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 1, 0);
 controls.autoRotate = true;
+controls.minDistance = 2;
+controls.maxDistance = 20;
 
 window.addEventListener("resize", onWindowResize, false);
 function onWindowResize() {
