@@ -2,33 +2,30 @@ import {
   AmbientLight,
   AnimationMixer,
   AxesHelper,
-  BoxGeometry,
   Clock,
   Color,
+  DirectionalLight,
+  DirectionalLightHelper,
   GridHelper,
   Mesh,
   MeshStandardMaterial,
   PCFSoftShadowMap,
   PerspectiveCamera,
-  RepeatWrapping,
+  PlaneBufferGeometry,
   Scene,
-  SpotLight,
-  SpotLightHelper,
-  sRGBEncoding,
-  TextureLoader,
   WebGLRenderer,
 } from "three";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import truck from "../models/truck.fbx";
-import ground from "../textures/ground.jpg";
 import "../css/index.css";
 
 const isDev = process.env.NODE_ENV === "development";
 
 const scene = new Scene();
-scene.background = new Color(0xaeaeae);
+scene.background = new Color(0xfad6a5);
+scene.receiveShadow = true;
 const camera = new PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -49,19 +46,18 @@ camera.position.z = -10;
 camera.position.y = 5;
 
 if (process.env.NODE_ENV === "development") {
-  scene.add(new AxesHelper(5), new GridHelper(10, 50));
+  scene.add(new AxesHelper(5), new GridHelper(100, 100));
 }
 
-// Add ground plane
 function addGround() {
-  const texture = new TextureLoader().load(ground);
-  texture.wrapS = texture.wrapT = RepeatWrapping;
-  texture.repeat.set(10, 10);
-  texture.anisotropy = 16;
-  texture.encoding = sRGBEncoding;
-  const material = new MeshStandardMaterial({ map: texture });
-  const mesh = new Mesh(new BoxGeometry(10, 0.1, 10), material);
+  const geo = new PlaneBufferGeometry(1000, 1000);
+  const mat = new MeshStandardMaterial({
+    color: 0xfaf2e7,
+  });
+  const mesh = new Mesh(geo, mat);
   mesh.receiveShadow = true;
+  mesh.position.set(0, 0, 0);
+  mesh.rotation.set(Math.PI / -2, 0, 0);
   scene.add(mesh);
 }
 addGround();
@@ -91,19 +87,13 @@ loader.load(
 );
 
 function addLight() {
-  const distance = 20.0;
-  const angle = Math.PI / 6.0;
-  const penumbra = 0.5;
-  const decay = 1;
-  const light = new SpotLight(0xffffff, 2, distance, angle, penumbra, decay);
-  light.target.position.set(-1, 0, 0);
-  light.position.set(5, 10, -5);
+  const sun = new DirectionalLight(0xffffcc);
+  sun.position.set(4, 5, 4);
+  sun.castShadow = true;
+  scene.add(sun);
 
-  light.castShadow = true;
+  const helper = new DirectionalLightHelper(sun);
 
-  const helper = new SpotLightHelper(light);
-
-  scene.add(light);
   isDev && scene.add(helper);
 }
 addLight();
@@ -119,8 +109,9 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 1, 0);
 controls.autoRotate = true;
-controls.minDistance = 2;
+controls.minDistance = 5;
 controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI / 2;
 
 window.addEventListener("resize", onWindowResize, false);
 function onWindowResize() {
